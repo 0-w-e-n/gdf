@@ -11,8 +11,8 @@ type DataFrame struct {
     Types []string
 }
 
-func NewDataFrame(rows []Row, columns []string, types []string) DataFrame {
-    df := DataFrame{
+func NewDataFrame(rows []Row, columns []string, types []string) *DataFrame {
+    df := &DataFrame{
        rows,
        columns,
        types,
@@ -40,11 +40,106 @@ func NewDataFrame(rows []Row, columns []string, types []string) DataFrame {
     return df
 }
 
-func (df DataFrame) Show() {
+func (df *DataFrame) Show() {
     log.Println("Columns:", df.Columns)
     log.Println("Types:", df.Types)
     log.Println("Rows:")
     for _, r := range df.Rows {
         r.Show()
     }
+}
+
+func (df *DataFrame) Head(size ...int) *DataFrame {
+    headSize := 10
+    if len(size) > 0 {
+        headSize = size[0]
+    }
+
+    if len(df.Rows) < 10 {
+        return df
+    }
+
+    rows := df.Rows
+    rows = rows[:headSize]
+    newDf := &DataFrame{
+        rows,
+        df.Columns,
+        df.Types,
+    }
+    return newDf
+}
+
+func (df *DataFrame) ContainsColumn(column string) bool {
+    foundInDf := false
+    for _, col := range df.Columns {
+        if col == column {
+            foundInDf = true
+        }
+    }
+    return foundInDf
+}
+
+func (df *DataFrame) IAdd(otherDf *DataFrame, column string) *DataFrame {
+    if !df.ContainsColumn(column) {
+        err := errors.New(column + " not found in source DataFrame")
+        panic(err)
+    }
+
+    if !otherDf.ContainsColumn(column) {
+        err := errors.New(column + " not found in other DataFrame")
+        panic(err)
+    }
+
+    if len(df.Rows) != len(otherDf.Rows) {
+        err := errors.New("Provided DataFrames are not the same length, cannot perform addition")
+        panic(err)
+    }
+
+
+    newDf := &DataFrame{
+        df.Rows,
+        df.Columns,
+        df.Types,
+    }
+    for i, row := range newDf.Rows {
+        otherDfRow := otherDf.Rows[i]
+        otherDfVal := otherDfRow.Values[column]
+        dfVal := row.Values[column]
+        newVal := dfVal.(int) + otherDfVal.(int)
+
+        newDf.Rows[i].Values[column] = newVal
+    }
+    return newDf
+}
+
+func (df *DataFrame) FAdd(otherDf *DataFrame, column string) *DataFrame {
+    if !df.ContainsColumn(column) {
+        err := errors.New(column + " not found in source DataFrame")
+        panic(err)
+    }
+
+    if !otherDf.ContainsColumn(column) {
+        err := errors.New(column + " not found in other DataFrame")
+        panic(err)
+    }
+
+    if len(df.Rows) != len(otherDf.Rows) {
+        err := errors.New("Provided DataFrames are not the same length, cannot perform addition")
+        panic(err)
+    }
+
+    newDf := &DataFrame{
+        df.Rows,
+        df.Columns,
+        df.Types,
+    }
+    for i, row := range newDf.Rows {
+        otherDfRow := otherDf.Rows[i]
+        otherDfVal := otherDfRow.Values[column]
+        dfVal := row.Values[column]
+        newVal := dfVal.(float64) + otherDfVal.(float64)
+
+        newDf.Rows[i].Values[column] = newVal
+    }
+    return newDf
 }
