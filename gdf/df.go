@@ -2,16 +2,17 @@ package gdf
 
 import (
     "errors"
+    "log"
 )
 
-type dataFrame struct {
-    Rows []row
+type DataFrame struct {
+    Rows []Row
     Columns []string
     Types []string
 }
 
-func DataFrame(rows []row, columns []string, types []string) dataFrame {
-    df := dataFrame{
+func NewDataFrame(rows []Row, columns []string, types []string) DataFrame {
+    df := DataFrame{
        rows,
        columns,
        types,
@@ -37,4 +38,13 @@ func DataFrame(rows []row, columns []string, types []string) dataFrame {
         }
     }
     return df
+}
+
+func (df DataFrame) Show() {
+    log.Println("Columns:", df.Columns)
+    log.Println("Types:", df.Types)
+    log.Println("Rows:")
+    for _, r := range df.Rows {
+        r.Show()
+    }
 }

@@ -2,17 +2,18 @@ package gdf
 
 import (
     "errors"
+    "log"
     "gopher_df/core"
 )
 
-type row struct {
+type Row struct {
     Columns []string
     Values map[string]interface{}
     Types []string
 }
 
-func Row(columns []string, values map[string]interface{}, types []string) row {
-    r := row{
+func NewRow(columns []string, values map[string]interface{}, types []string) Row {
+    r := Row{
         Columns: columns,
         Types: types,
         Values: values,
@@ -30,4 +31,13 @@ func Row(columns []string, values map[string]interface{}, types []string) row {
         }
     }
     return r
+}
+
+func (r Row) Show() {
+    for i, col := range r.Columns {
+        t := r.Types[i]
+        val := r.Values[col]
+        log.Println("Name:", col, "Type:", t, "Value:", val)
+    }
+    log.Println()
 }
