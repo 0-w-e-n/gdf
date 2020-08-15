@@ -55,7 +55,7 @@ func (df *DataFrame) Head(size ...int) *DataFrame {
         headSize = size[0]
     }
 
-    if len(df.Rows) < 10 {
+    if len(df.Rows) < headSize {
         return df
     }
 
