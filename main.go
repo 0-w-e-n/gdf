@@ -26,7 +26,7 @@ func main() {
         rows2 = append(rows2, r2)
     }
     df := gdf.NewDataFrame(rows, cols, types).
-    Add(gdf.NewDataFrame(rows2, cols, types), "B").
+    Mul(gdf.NewDataFrame(rows2, cols, types), "B").
     Add(gdf.NewDataFrame(rows2, cols, types), "A")
 
     df.

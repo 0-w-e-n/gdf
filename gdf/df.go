@@ -81,21 +81,10 @@ func (df *DataFrame) ContainsColumn(column string) bool {
 }
 
 func (df *DataFrame) Add(otherDf *DataFrame, column string) *DataFrame {
-    if !df.ContainsColumn(column) {
-        err := errors.New(column + " not found in source DataFrame")
+    err := checkDFCols(df, otherDf, column)
+    if err != nil {
         panic(err)
     }
-
-    if !otherDf.ContainsColumn(column) {
-        err := errors.New(column + " not found in other DataFrame")
-        panic(err)
-    }
-
-    if len(df.Rows) != len(otherDf.Rows) {
-        err := errors.New("Provided DataFrames are not the same length, cannot perform addition")
-        panic(err)
-    }
-
 
     newDf := &DataFrame{
         df.Rows,
@@ -117,4 +106,47 @@ func (df *DataFrame) Add(otherDf *DataFrame, column string) *DataFrame {
         }
     }
     return newDf
+}
+
+func (df *DataFrame) Mul(otherDf *DataFrame, column string) *DataFrame {
+    err := checkDFCols(df, otherDf, column)
+    if err != nil {
+        panic(err)
+    }
+
+    newDf := &DataFrame{
+        df.Rows,
+        df.Columns,
+        df.Types,
+    }
+    for i, row := range newDf.Rows {
+        otherDfRow := otherDf.Rows[i]
+        otherDfVal := otherDfRow.Values[column]
+        dfVal := row.Values[column]
+        t := core.TypeOf(dfVal)
+        switch t {
+        case "int":
+            newVal := dfVal.(int) * otherDfVal.(int)
+            newDf.Rows[i].Values[column] = newVal
+        case "float64":
+            newVal := dfVal.(float64) * otherDfVal.(float64)
+            newDf.Rows[i].Values[column] = newVal
+        }
+    }
+    return newDf
+}
+
+func checkDFCols(df1 *DataFrame, df2 *DataFrame, column string) (err error) {
+    if !df1.ContainsColumn(column) {
+        err = errors.New(column + " not found in source DataFrame 1")
+    }
+
+    if !df2.ContainsColumn(column) {
+        err = errors.New(column + " not found in DataFrame 2")
+    }
+
+    if len(df1.Rows) != len(df2.Rows) {
+        err = errors.New("Provided DataFrames are not the same length, cannot perform addition")
+    }
+    return err
 }
