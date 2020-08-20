@@ -26,8 +26,8 @@ func main() {
         rows2 = append(rows2, r2)
     }
     df := gdf.NewDataFrame(rows, cols, types).
-    FAdd(gdf.NewDataFrame(rows2, cols, types), "B").
-    IAdd(gdf.NewDataFrame(rows2, cols, types), "A")
+    Add(gdf.NewDataFrame(rows2, cols, types), "B").
+    Add(gdf.NewDataFrame(rows2, cols, types), "A")
 
     df.
     Head(1000).

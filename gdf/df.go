@@ -3,6 +3,7 @@ package gdf
 import (
     "errors"
     "log"
+    "gopher_df/core"
 )
 
 type DataFrame struct {
@@ -13,9 +14,9 @@ type DataFrame struct {
 
 func NewDataFrame(rows []Row, columns []string, types []string) *DataFrame {
     df := &DataFrame{
-       rows,
-       columns,
-       types,
+        rows,
+        columns,
+        types,
     }
     for rowNum, r := range df.Rows {
         for i, col := range df.Columns {
@@ -79,7 +80,7 @@ func (df *DataFrame) ContainsColumn(column string) bool {
     return foundInDf
 }
 
-func (df *DataFrame) IAdd(otherDf *DataFrame, column string) *DataFrame {
+func (df *DataFrame) Add(otherDf *DataFrame, column string) *DataFrame {
     if !df.ContainsColumn(column) {
         err := errors.New(column + " not found in source DataFrame")
         panic(err)
@@ -105,41 +106,15 @@ func (df *DataFrame) IAdd(otherDf *DataFrame, column string) *DataFrame {
         otherDfRow := otherDf.Rows[i]
         otherDfVal := otherDfRow.Values[column]
         dfVal := row.Values[column]
-        newVal := dfVal.(int) + otherDfVal.(int)
-
-        newDf.Rows[i].Values[column] = newVal
-    }
-    return newDf
-}
-
-func (df *DataFrame) FAdd(otherDf *DataFrame, column string) *DataFrame {
-    if !df.ContainsColumn(column) {
-        err := errors.New(column + " not found in source DataFrame")
-        panic(err)
-    }
-
-    if !otherDf.ContainsColumn(column) {
-        err := errors.New(column + " not found in other DataFrame")
-        panic(err)
-    }
-
-    if len(df.Rows) != len(otherDf.Rows) {
-        err := errors.New("Provided DataFrames are not the same length, cannot perform addition")
-        panic(err)
-    }
-
-    newDf := &DataFrame{
-        df.Rows,
-        df.Columns,
-        df.Types,
-    }
-    for i, row := range newDf.Rows {
-        otherDfRow := otherDf.Rows[i]
-        otherDfVal := otherDfRow.Values[column]
-        dfVal := row.Values[column]
-        newVal := dfVal.(float64) + otherDfVal.(float64)
-
-        newDf.Rows[i].Values[column] = newVal
+        t := core.TypeOf(dfVal)
+        switch t {
+        case "int":
+            newVal := dfVal.(int) + otherDfVal.(int)
+            newDf.Rows[i].Values[column] = newVal
+        case "float64":
+            newVal := dfVal.(float64) + otherDfVal.(float64)
+            newDf.Rows[i].Values[column] = newVal
+        }
     }
     return newDf
 }
