@@ -3,7 +3,6 @@ package gdf
 import (
     "errors"
     "log"
-    "gopher_df/core"
 )
 
 type DataFrame struct {
@@ -95,12 +94,11 @@ func (df *DataFrame) Add(otherDf *DataFrame, column string) *DataFrame {
         otherDfRow := otherDf.Rows[i]
         otherDfVal := otherDfRow.Values[column]
         dfVal := row.Values[column]
-        t := core.TypeOf(dfVal)
-        switch t {
-        case "int":
+        switch dfVal.(type) {
+        case int:
             newVal := dfVal.(int) + otherDfVal.(int)
             newDf.Rows[i].Values[column] = newVal
-        case "float64":
+        case float64:
             newVal := dfVal.(float64) + otherDfVal.(float64)
             newDf.Rows[i].Values[column] = newVal
         }
@@ -123,12 +121,11 @@ func (df *DataFrame) Mul(otherDf *DataFrame, column string) *DataFrame {
         otherDfRow := otherDf.Rows[i]
         otherDfVal := otherDfRow.Values[column]
         dfVal := row.Values[column]
-        t := core.TypeOf(dfVal)
-        switch t {
-        case "int":
+        switch dfVal.(type) {
+        case int:
             newVal := dfVal.(int) * otherDfVal.(int)
             newDf.Rows[i].Values[column] = newVal
-        case "float64":
+        case float64:
             newVal := dfVal.(float64) * otherDfVal.(float64)
             newDf.Rows[i].Values[column] = newVal
         }
