@@ -133,17 +133,32 @@ func (df *DataFrame) Mul(otherDf *DataFrame, column string) *DataFrame {
     return newDf
 }
 
-type applyFunc func(*DataFrame) *DataFrame
+type ApplyFunc func(*DataFrame) *DataFrame
 
 type GroupedDataFrames struct {
     DataFrames []*DataFrame
 }
 
-func (dfs GroupedDataFrames) Apply(fn applyFunc) *DataFrame {
-    newDfs := make([]*DataFrame, len(dfs.DataFrames))
-    for i, df := range dfs.DataFrames {
-        newDfs[i] = fn(df)
+func (dfs GroupedDataFrames) Apply(fn ApplyFunc) *DataFrame {
+    lenDfs := len(dfs.DataFrames)
+    newDfs := make([]*DataFrame, lenDfs)
+    results := make(chan *DataFrame, lenDfs)
+    for _, df := range dfs.DataFrames {
+        go func() {
+            res := fn(df)
+            results <- res
+        }()
     }
+
+    index := 0
+    for res := range results {
+        newDfs[index] = res
+        index = index + 1
+        if index == lenDfs {
+            close(results)
+        }
+    }
+
     newDf := Concat(newDfs)
     return newDf
 }
@@ -162,7 +177,8 @@ func (df *DataFrame) GroupBy(columns ...string) GroupedDataFrames {
 
 func Concat(dfs []*DataFrame) *DataFrame {
     if len(dfs) == 0 {
-        return &DataFrame{}
+        err := errors.New("Empty slice of DataFrames passed, need at least one to concat")
+        panic(err)
     }
 
     firstDf := dfs[0]
