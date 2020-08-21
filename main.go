@@ -10,7 +10,7 @@ func main() {
     rows := []gdf.Row{}
     rows2 := []gdf.Row{}
 
-    for i := 1;  i < 100000; i++ {
+    for i := 1;  i < 1000000; i++ {
         vals := make(map[string]interface{})
         vals["A"] = i * 7
         vals["B"] = float64(i) * 1.2
@@ -29,12 +29,18 @@ func main() {
     Mul(gdf.NewDataFrame(rows2, cols, types), "B").
     Add(gdf.NewDataFrame(rows2, cols, types), "A")
 
+	dfs := make([]*gdf.DataFrame, 2)
+	dfs[1] = df
+	dfs[0] = gdf.NewDataFrame(rows2, cols, types)
+
+	ndf := gdf.Concat(dfs)
+
     fn := func(df *gdf.DataFrame) *gdf.DataFrame {
         df = df.Add(df, "A")
         return df
     }
 
-    df.
+    ndf.
     GroupBy("C").
     Apply(fn).
     Head(1000).

@@ -2,6 +2,7 @@ package gdf
 
 import (
     "errors"
+    "strconv"
     "log"
 )
 
@@ -84,6 +85,10 @@ func (df *DataFrame) Add(otherDf *DataFrame, column string) *DataFrame {
     if err != nil {
         panic(err)
     }
+    if len(df.Rows) != len(otherDf.Rows) {
+	err = errors.New("Provided DataFrames are not the same length, cannot perform addition")
+        panic(err)
+    }
 
     newDf := &DataFrame{
         df.Rows,
@@ -109,6 +114,10 @@ func (df *DataFrame) Add(otherDf *DataFrame, column string) *DataFrame {
 func (df *DataFrame) Mul(otherDf *DataFrame, column string) *DataFrame {
     err := checkDFCols(df, otherDf, column)
     if err != nil {
+        panic(err)
+    }
+    if len(df.Rows) != len(otherDf.Rows) {
+	err = errors.New("Provided DataFrames are not the same length, cannot perform addition")
         panic(err)
     }
 
@@ -142,10 +151,15 @@ type GroupedDataFrames struct {
 func (dfs GroupedDataFrames) Apply(fn ApplyFunc) *DataFrame {
     lenDfs := len(dfs.DataFrames)
     newDfs := make([]*DataFrame, lenDfs)
-    results := make(chan *DataFrame, lenDfs)
+    results := make(chan *DataFrame)
     for _, df := range dfs.DataFrames {
+        _df := &DataFrame{
+            Rows: df.Rows,
+            Types: df.Types,
+            Columns: df.Columns,
+        }
         go func() {
-            res := fn(df)
+            res := fn(_df)
             results <- res
         }()
     }
@@ -169,10 +183,53 @@ func (df *DataFrame) GroupBy(columns ...string) GroupedDataFrames {
         o[0] = df
         return GroupedDataFrames{DataFrames: o}
     }
-    // TODO: add real implementation
-    o := make([]*DataFrame, 1)
-    o[0] = df
-    return GroupedDataFrames{DataFrames: o}
+    groups := make(map[string]*DataFrame)
+    for _, row := range df.Rows {
+        uid := ""
+        for i, col := range columns {
+            val := row.Values[col]
+            switch val.(type) {
+            case int:
+                tVal := val.(int)
+                uid = uid + string(tVal)
+            case float64:
+                tVal := val.(float64)
+                sVal := strconv.FormatFloat(tVal, 'f', 6, 64)
+                uid = uid + string(sVal)
+            case string:
+                uid = uid + val.(string)
+            }
+            if i != len(columns) - 1 {
+                uid = uid + "_"
+            }
+        }
+        cDf, found := groups[uid]
+        if !found {
+            nRows := []Row{row}
+            nDf := &DataFrame{
+                Rows: nRows,
+                Types: df.Types,
+                Columns: df.Columns,
+            }
+            groups[uid] = nDf
+        } else {
+            nRows := cDf.Rows
+            nRows = append(nRows, row)
+            nDf := &DataFrame{
+                Rows: nRows,
+                Types: cDf.Types,
+                Columns: cDf.Columns,
+            }
+            groups[uid] = nDf
+        }
+    }
+    dfs := make([]*DataFrame, len(groups))
+    index := 0
+    for _, df_ := range groups {
+        dfs[index] = df_
+        index = index + 1
+    }
+    return GroupedDataFrames{DataFrames: dfs}
 }
 
 func Concat(dfs []*DataFrame) *DataFrame {
@@ -217,8 +274,5 @@ func checkDFCols(df1 *DataFrame, df2 *DataFrame, column string) (err error) {
         err = errors.New(column + " not found in DataFrame 2")
     }
 
-    if len(df1.Rows) != len(df2.Rows) {
-        err = errors.New("Provided DataFrames are not the same length, cannot perform addition")
-    }
     return err
 }
