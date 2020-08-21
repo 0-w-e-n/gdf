@@ -29,7 +29,14 @@ func main() {
     Mul(gdf.NewDataFrame(rows2, cols, types), "B").
     Add(gdf.NewDataFrame(rows2, cols, types), "A")
 
+    fn := func(df *gdf.DataFrame) *gdf.DataFrame {
+        df = df.Add(df, "A")
+        return df
+    }
+
     df.
+    GroupBy("C").
+    Apply(fn).
     Head(1000).
     Show()
 }

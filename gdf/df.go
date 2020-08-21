@@ -133,6 +133,65 @@ func (df *DataFrame) Mul(otherDf *DataFrame, column string) *DataFrame {
     return newDf
 }
 
+type applyFunc func(*DataFrame) *DataFrame
+
+type GroupedDataFrames struct {
+    DataFrames []*DataFrame
+}
+
+func (dfs GroupedDataFrames) Apply(fn applyFunc) *DataFrame {
+    newDfs := make([]*DataFrame, len(dfs.DataFrames))
+    for i, df := range dfs.DataFrames {
+        newDfs[i] = fn(df)
+    }
+    newDf := Concat(newDfs)
+    return newDf
+}
+
+func (df *DataFrame) GroupBy(columns ...string) GroupedDataFrames {
+    if len(columns) == 0 {
+        o := make([]*DataFrame, 1)
+        o[0] = df
+        return GroupedDataFrames{DataFrames: o}
+    }
+    // TODO: add real implementation
+    o := make([]*DataFrame, 1)
+    o[0] = df
+    return GroupedDataFrames{DataFrames: o}
+}
+
+func Concat(dfs []*DataFrame) *DataFrame {
+    if len(dfs) == 0 {
+        return &DataFrame{}
+    }
+
+    firstDf := dfs[0]
+
+    rows := firstDf.Rows
+
+    for i, df := range dfs {
+        if i == 0 {
+            continue
+        }
+
+        for _, column := range df.Columns {
+            err := checkDFCols(df, firstDf, column)
+            if err != nil {
+                panic(err)
+            }
+            rows = append(rows, df.Rows...)
+        }
+    }
+
+    newDf := &DataFrame{
+        Columns: firstDf.Columns,
+        Types: firstDf.Types,
+        Rows: rows,
+    }
+
+    return newDf
+}
+
 func checkDFCols(df1 *DataFrame, df2 *DataFrame, column string) (err error) {
     if !df1.ContainsColumn(column) {
         err = errors.New(column + " not found in source DataFrame 1")
