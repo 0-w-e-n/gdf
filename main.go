@@ -12,7 +12,7 @@ func main() {
 
     smilePad := ")"
 
-    for i := 1;  i < 1000000; i++ {
+    for i := 1;  i < 5000000; i++ {
         if i % 10000 == 0 {
             // make a bunch of groups
             smilePad = smilePad + ")"
@@ -36,11 +36,11 @@ func main() {
     Mul(gdf.NewDataFrame(rows2, cols, types), "B").
     Add(gdf.NewDataFrame(rows2, cols, types), "A")
 
-	dfs := make([]*gdf.DataFrame, 2)
-	dfs[1] = df
-	dfs[0] = gdf.NewDataFrame(rows2, cols, types)
+    dfs := make([]*gdf.DataFrame, 2)
+    dfs[1] = df
+    dfs[0] = gdf.NewDataFrame(rows2, cols, types)
 
-	ndf := gdf.Concat(dfs)
+    ndf := gdf.Concat(dfs)
 
     fn := func(df *gdf.DataFrame) *gdf.DataFrame {
         df = df.Add(df, "A")
