@@ -4,6 +4,7 @@ import (
     "errors"
     "strconv"
     "log"
+    "fmt"
 )
 
 type DataFrame struct {
@@ -22,7 +23,7 @@ func NewDataFrame(rows []Row, columns []string, types []string) *DataFrame {
         for i, col := range df.Columns {
             rowCol := r.Columns[i]
             if rowCol != col {
-                errMsg := "Row " + string(rowNum) + " has mismatched column, expected: " + col
+                errMsg := "Row " + fmt.Sprint(rowNum) + " has mismatched column, expected: " + col
                 errMsg = errMsg + " but got: " + rowCol
                 err := errors.New(errMsg)
                 panic(err)
@@ -31,7 +32,7 @@ func NewDataFrame(rows []Row, columns []string, types []string) *DataFrame {
             rowType := r.Types[i]
             dfType := df.Types[i]
             if rowType != dfType {
-                errMsg := "Row " + string(rowNum) + " has mismatched type, expected: " + dfType
+                errMsg := "Row " + fmt.Sprint(rowNum) + " has mismatched type, expected: " + dfType
                 errMsg = errMsg + " but got: " + rowType
                 err := errors.New(errMsg)
                 panic(err)
@@ -191,11 +192,11 @@ func (df *DataFrame) GroupBy(columns ...string) GroupedDataFrames {
             switch val.(type) {
             case int:
                 tVal := val.(int)
-                uid = uid + string(tVal)
+                uid = uid + fmt.Sprint(tVal)
             case float64:
                 tVal := val.(float64)
                 sVal := strconv.FormatFloat(tVal, 'f', 6, 64)
-                uid = uid + string(sVal)
+                uid = uid + fmt.Sprint(sVal)
             case string:
                 uid = uid + val.(string)
             }
